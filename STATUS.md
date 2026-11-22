@@ -4,6 +4,7 @@
 
 | Item | Evidence label | Reproducible support | Next proof |
 |---|---|---|---|
+| Offline C++ CS16 detector | REPRODUCED_OFF_TARGET | [11 host assertions + ASan/UBSan replay](experiments/edge-detector/OFFTARGET_TEST_EVIDENCE.md), Linux x86-64 g++ 14.2.0; generated logs saved in launch folder | ARMv7+real AD9361 input, end-to-end latency, false-alarm and coexistence proof |
 | Agent 2 six studies | UPSTREAM_DOCUMENTED | [research/agent2/README.md](research/agent2/README.md), published on `main` at `b9c69caa3bea28f7ef758f79185fe38c959b3618`; no target tests | Compare executable feasibility with actual R1 |
 | Agent 1 exact-board reconnaissance | UPSTREAM_DOCUMENTED | [Independent REA research branch](https://github.com/hardcoreerik/REA-Results/tree/research/orcpluto-fishball-hardware-20261121), pinned upstream `c5611717e2144a978ab22cf63a20171eea675557` | Actual unit inventory, firmware/board/PA/boot hashes |
 | Published FPGA reference | UPSTREAM_DOCUMENTED | 94/220 DSP48, 12,521/53,200 LUTs, +0.215ns WNS **reported by other R1 build**; see Agent 1 resource matrix | Fresh full route on exact checkout/XSA; baseline+mod comparisons |
