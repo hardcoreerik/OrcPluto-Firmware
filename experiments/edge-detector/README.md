@@ -24,7 +24,7 @@ The test runner builds under `./edge_detector_test_artifacts/`, generates a repr
 Actual off-target run (2026-11-21, g++ C++17, x86 Linux):
 
 ```text
-PASS: 8 assertions; 2 burst windows; 0 inferred modulation labels
+PASS: 11 assertions; 2 burst windows; 0 inferred modulation labels
 log: .../edge_detector_test.log
 ```
 
