@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
       }
       dst << std::setprecision(12)
           << "{\"schema\":\"orcp.internal.measurement.v0\",\"source\":\"offline_cs16le_replay\","
-          << "\"sample_index_domain\":\"file_relative_not_device_time\",\"first_sample_index\":" << first
+          << "\"source_epoch\":\"offline_file_0001\",\"sample_index_domain\":\"file_relative_not_device_time\",\"first_sample_index\":" << first
           << ",\"sample_count\":" << n << ",\"rx_channel\":0,"
           << "\"measured\":{\"mean_iq_power_counts2\":" << mean_power
           << ",\"peak_dft_power_counts2\":" << peak << ",\"peak_dft_bin\":" << peak_bin
