@@ -52,6 +52,7 @@ try:
     must(all(x['classification']['status']=='unknown' and x['classification']['confidence'] is None for x in rows), 'never guesses modulation')
     must(all(x['measured']['peak_dft_bin']==16 for x in rows), 'DFT peak at known bin')
     must(all(x['sample_index_domain']=='file_relative_not_device_time' for x in rows), 'no fabricated device timestamp')
+    must(all(x['source_epoch']=='offline_file_0001' for x in rows), 'explicit offline source epoch')
     bad = ART / 'truncated_cs16le.bin'
     bad.write_bytes(bytes(data)+b'\x00')
     p = run([str(exe),str(bad),str(window),'10000',str(ART/'truncated_events.ndjson')])
@@ -60,7 +61,7 @@ try:
     must(p.returncode == 2, 'rejects invalid window')
     p = run([str(exe),str(iq),str(window),'10000',str(iq)])
     must(p.returncode == 2 and len(iq.read_bytes()) == len(data), 'rejects output aliasing input file')
-    print('PASS: 8 assertions; 2 burst windows; 0 inferred modulation labels')
+    print('PASS: 11 assertions; 2 burst windows; 0 inferred modulation labels')
 except Exception as exc:
     lines.append(f'FAIL exception: {exc!r}')
     print(f'FAIL: {exc}', file=sys.stderr)
