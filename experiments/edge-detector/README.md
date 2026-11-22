@@ -24,11 +24,11 @@ The test runner builds under `./edge_detector_test_artifacts/`, generates a repr
 Actual off-target run (2026-11-21, g++ C++17, x86 Linux):
 
 ```text
-PASS: 7 assertions; 2 burst windows; 0 inferred modulation labels
+PASS: 8 assertions; 2 burst windows; 0 inferred modulation labels
 log: .../edge_detector_test.log
 ```
 
-The runner asserts sample windows `192` and `256` (64 samples each), expected DFT bin `16`, an explicit `unknown` decision, no invented device clock, rejection of a truncated IQ file (exit 4) and rejection of invalid window size (exit 2). No hardware was connected; no radio settings were changed.
+The runner asserts sample windows `192` and `256` (64 samples each), expected DFT bin `16`, an explicit `unknown` decision, no invented device clock, rejection of a truncated IQ file (exit 4) and rejection of invalid window size (exit 2), and refusal to overwrite the IQ input file. No hardware was connected; no radio settings were changed.
 
 ### Manual replay after building
 
