@@ -58,7 +58,9 @@ try:
     must(p.returncode == 4 and 'truncated' in p.stderr, 'rejects truncated IQ, no silent trailing drop')
     p = run([str(exe),str(iq),'1','10000',str(out)])
     must(p.returncode == 2, 'rejects invalid window')
-    print('PASS: 7 assertions; 2 burst windows; 0 inferred modulation labels')
+    p = run([str(exe),str(iq),str(window),'10000',str(iq)])
+    must(p.returncode == 2 and len(iq.read_bytes()) == len(data), 'rejects output aliasing input file')
+    print('PASS: 8 assertions; 2 burst windows; 0 inferred modulation labels')
 except Exception as exc:
     lines.append(f'FAIL exception: {exc!r}')
     print(f'FAIL: {exc}', file=sys.stderr)
