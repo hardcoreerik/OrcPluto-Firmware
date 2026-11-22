@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     return 2;
   }
   const std::string input = argv[1], output = argv[4];
+  if (input == output) { std::cerr << "input and output must differ\n"; return 2; }
   unsigned long n_arg = 0;
   double threshold = 0;
   try { n_arg = std::stoul(argv[2]); threshold = std::stod(argv[3]); }
