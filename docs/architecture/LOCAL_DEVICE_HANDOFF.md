@@ -27,7 +27,7 @@ python experiments/edge-detector/run_tests.py
 py -3 experiments/edge-detector/run_tests.py
 ```
 
-**Expected:** `PASS: 8 assertions; 2 burst windows; 0 inferred modulation labels`. The command saves `edge_detector_test.log` in your current directory and fixture binaries/events in `edge_detector_test_artifacts/`. Failure: retain *full* `edge_detector_test.log`, compiler version and generated fixtures; do not report a pass. Clean undo: remove only generated log and artifacts folder after archiving them. No installation or device action occurs.
+**Expected:** `PASS: 11 assertions; 2 burst windows; 0 inferred modulation labels`. The command saves `edge_detector_test.log` in your current directory and fixture binaries/events in `edge_detector_test_artifacts/`. Failure: retain *full* `edge_detector_test.log`, compiler version and generated fixtures; do not report a pass. Clean undo: remove only generated log and artifacts folder after archiving them. No installation or device action occurs.
 
 ## Step 2 — collect actual unit inventory without modifying the radio
 
