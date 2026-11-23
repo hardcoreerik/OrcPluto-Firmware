@@ -1,31 +1,78 @@
-# OrcPluto-Firmware — Evidence-Gated Roadmap
+# ROADMAP — OrcPluto-Firmware
 
-**Version:** research-integration v0.1 (2026-11-21); phases are **planned**, not already implemented. Current evidence: [STATUS.md](STATUS.md). The existing [Agent 2 research](research/agent2/README.md) remains archival source material.
+**Evidence-gated development plan | Consolidated 2026-11-22.** This is the intended sequence, **not a release checklist already passed**. Current truth is [PROJECT_TRUTH.md](PROJECT_TRUTH.md), current proof is [STATUS.md](STATUS.md), and technical allocation is [ARCHITECTURE.md](ARCHITECTURE.md).
 
-| Phase | Principal owner / prerequisite | Deliverable | Measurable acceptance gate |
+## Shipping strategy
+
+Create a **safe, compatible, reproducible RX appliance first**. Add trustworthy local detection before neural-network branding. Add FPGA offload, smart IQ, multi-consumer streaming and remote management only when each improvement passes a baseline-versus-change test on the owner's exact unit.
+
+Priority order: **device identification / rollback → standard radio compatibility → original-IQ fidelity / source ownership → classical detector → sustained coexistence → justified FPGA/ML/OrcStream work → release hardening**.
+
+## Release phases (all device gates pending)
+
+| Phase | Owner / dependency | Required deliverables | Pass / fail gate |
 |---|---|---|---|
-| **P0: Board identity, backups, recovery** | Agent 1 + owner; read-only actual unit | Exact SKU/PCB/PA/DDR/PHY/clock/USB/SD/QSPI inventory, live DT/IIO/boot logs, hashes of original boot/SD/QSPI artifacts, verified spare-card strategy | Board/profile matches actual hardware; recovery path demonstrably viable **before any write**, otherwise BLOCKED |
-| **P1: Linux reference image** | Firmware lead + Agent 2, depends P0 | Version-pinned ADI Linux 6.12 + Debian 13 armhf candidate with exact R1 FSBL/U-Boot/XSA/DT, libiio/iiod 0.26 compatibility and safe TX defaults | Cold boot on spare card, native IIO 1RX and 2RX tests where supported, Ethernet/USB discovery/reconnect, existing esp-pluto-sdr client smoke; factory image remains untouched |
-| **P2: Accurate IQ and reliability** | Firmware + Agent 1; P1, sample-format inventory | Single-owner acquisition contract, rate/format/epoch record, independent loss counters and measured CPU/RAM/thermal/link baselines | Byte and continuity evidence for declared 2.4, 5, 10 MS/s cases **only where link/device supports them**; all losses distinguished, no silent sample mutation |
-| **P3: Classical ARM detector** | Agent 2; P2 or isolated offline fixture | Portable C++ energy/FFT/window/burst detector, explicit `unknown`, local NDJSON and deterministic fixtures | Synthetic off-target tests pass; target requires real AD9361 capture with recorded sample windows, detection error and false-alarm rate; no OrcStream EVENT claim |
-| **P4: Safe simultaneous services** | Firmware acquisition owner + Agent 2; P2/P3 | One IIO sample owner or proven PL-side independent feature tap, bounded queues/overload rules and telemetry | Stress and fault injection; feature overflow only loses counted features, original-IQ delivery not worsened; 24h soak required for continuous claim |
-| **P5: FPGA DSP acceleration** | Agent 1 FPGA + Agent 2; P0/P2/P4 | No-op IQ mirror then fixed-point power/threshold/counter branch and optional FFT/feature FIFO | Same pinned Vivado/RTL/XSA, simulation vectors, *post-route* WNS/CDC/BRAM/DSP reports and RX1/RX2 IIO byte integrity; hardware regression before claiming deployed |
-| **P6: Quantized ML + generic event interoperability** | Agent 2 inference + OrcStream/Agent 3; P3/P4, validated codec/event negotiation | ARMv7-hf build of small ncnn or measured alternative, real-capture-disjoint classifier, versioned internal events; negotiated generic EVENT adapter only once OrcStream defines it | Actual Cortex-A9 ELF/runtime and latency p50/p95/p99, PSS, end-to-end stream continuity, calibrated/abstain/OOD tests; independent non-Pluto event consumer |
-| **P7: Product hardening** | Firmware/security/release owner; all preceding gates | Choose production distro on evidence; signed artifact manifest, SBOM/licenses, secure auth/update/rollback, controlled operations | 24h acquisition+classification soak, power-cycle/recovery, independently reproduced builds, no unexplained IQ loss, demonstrated vendor-standard compatibility |
+| **P0 — Board truth & recovery** | Owner + hardware/REA agent; **first** | Exact R1 SKU/PCB/XC7Z020 speed grade, DDR, PHY, PA/TX port/clock/USB/SD/QSPI/boot switch inventory; live read-only device tree, IIO and image hashes; untouched original media; spare card/rescue drill | Exact identity and a rehearsed path to recover without unsafe writes; if missing, **STOP/BLOCKED** |
+| **P1 — Known-good Linux/IIO baseline** | Firmware lead, after P0 | Pinned Fishball-appropriate FSBL/U-Boot/XSA/bitstream/DT, ADI-derived Linux 6.12/Debian 13 armhf trial image on **separate recoverable SD**; build manifest | Safe cold boot, RX-only/default TX proof, 1RX and supported 2RX format/channel verification, libiio/iiod 0.26 where compatible, Ethernet/USB discovery/reconnect, esp-pluto-sdr regression; original media never modified |
+| **P2 — Native IQ fidelity & source ownership** | Firmware + hardware; P1 | One authoritative tune/acquire owner; scan-format proof, epoch/timebase metadata, separate losses, link and CPU/memory/thermal benchmarks | Byte/sample equivalence vs reference and recorded delivered-versus-requested rates (2.4, 5, 10 MS/s **when path supports them**); loss distinguishable; no hidden format conversion |
+| **P3 — Truthful signal presence baseline** | Edge/DSP agent; offline fixture then P2 | Port/replace O(N²) reference with measured bounded FFT/power/burst detector on A9; known/unknown controlled captures, no-signal negatives, local versioned events | Host golden vectors + armhf ABI/device execution + independent known-signal/noise capture, false alarms/hour, measurement units, source-index spans, full window→event p50/p95/p99; unknown rather than fabricated class |
+| **P4 — Bounded concurrent services** | Firmware acquisition owner + DSP; P2/P3 | Explicit fanout or independent proven passive PL tap, bounded IQ/feature/event queues, overload and crash supervision, telemetry | Active IIO/iiod and feature service coexist under stress with **no new unexplained source IQ loss**; feature skip/drop accounting and epoch resets; 24h soak before continuous claim |
+| **P5 — FPGA passive feature engine** | FPGA/REA + DSP; P0/P2/P4 | No-op RX mirror → valid-sample counter/power/threshold → CDC/bounded FIFO, optional FFT/decimation only after proven value | Pinned RTL/Vivado/XSA, simulation/golden vectors, post-route WNS/WHS, CDC and BRAM/DSP/LUT delta, 1RX/2RX scan integrity and native IIO non-regression on owner board |
+| **P6 — ML and portable event/stream adapters** | Edge AI + OrcStream protocol owner; P3/P4, P5 optional | Tiny tree/logistic baseline, armhf INT8 ncnn/LiteRT candidate A/B, grouped real-session model evaluation, internal event adapter and only **then** negotiated portable OrcStream integration | Device-executed ELF, calibrated rejection/OOD, latency/power/PSS/CPU, IIO continuity; conformance tests for independently approved OrcStream wire contracts and an unrelated client |
+| **P7 — Product/release hardening** | Release/security + hardware; preceding device gates | Reproducible pinned images and hardware matrix, SBOM/license audit, defaults/authentication, signed artifact manifest, update/recovery/rollback, lifecycle diagnostics | Independent rebuild, recovery/power-cycle exercise, 24h stable RX+services, source/client compatibility, zero unexplained sample loss, safe TX/controls and public evidence manifest |
 
-## Parallel R&D, not premature release claims
+**No schedule is promised.** Phases are gated by results, not dates; P3 off-target experiments can progress while device P0/P1 is blocked, but cannot be advertised as on-device success.
 
-- **Compression and Smart IQ:** Agent 3 owns codec semantics/bit-exact vectors in OrcStream; Agent 1 estimates available FPGA timing/headroom; firmware only implements negotiated codecs. Benchmark lossless 12-bit packing, entropy/predictive codecs and opt-in controlled-loss representations against identical real IQ. Keep link overhead, CPU, stream fidelity and worst-case expansion visible. 61.44 MS/s full native IQ through USB2 is **not promised**.
-- **On-device intelligence:** Agent 2 runs ARM reference first, FPGA feature assist second, quantized inference third; no automatic presumption that modern Vitis AI or PYNQ shells support this exact XC7Z020.
-- **Interoperability:** preserve IIOD, add native OrcStream as optional, and evaluate SigMF/VITA-49 bridges independently of proprietary radio-app UI.
-- **Other variants:** each board requires independently validated device-tree, boot, clock, PA and FPGA profile; no cross-variant flash.
+## Immediate execution backlog
 
-## First runnable experiment
+| Priority | Task | Expected output / definition of done |
+|---|---|---|
+| 1 | Run [read-only physical-board inventory](docs/architecture/LOCAL_DEVICE_HANDOFF.md) and compare with [REA Agent 1](https://github.com/hardcoreerik/REA-Results/tree/research/orcpluto-fishball-hardware-20261121) | Board/PA/boot/clock identification and redacted log in execution folder; no write |
+| 2 | Preserve exact original SD and record recoverable separate-card procedure **before** any image experiment | Images/sha256 and operator-validated rollback, or `BLOCKED` |
+| 3 | Reproduce [offline detector tests](experiments/edge-detector/README.md) in the working checkout | New `edge_detector_test.log`, fixture hashes and compiler version; previously reported 11 checks are not a substitute |
+| 4 | Tighten detector input/error semantics before real capture | Canonical-path/inode output-alias defense, strict integer/threshold parsing, no ambiguous partial-result success, malformed/empty cases in tests; continue to reject incomplete windows |
+| 5 | Establish portable native-scan conversion/golden IQ corpus | Explicit real source scan layout, little-endian validation, sample alignment, known antenna/RF stimulus and negative windows |
+| 6 | Prototype adaptive-memory detector entirely off-target | Fixed threshold vs CFAR-inspired vs context-keyed robust baseline; grouped holdouts, controlled drift/gain/blocker changes, fixed false-alarm budget |
+| 7 | Confirm current OrcStream wire and Agent 3 codec status independently before adapter work | Explicit version/feature negotiation and sample-exact compression vectors; no local wire packet IDs |
+| 8 | Capture reproducible Vivado and Linux build closure when hardware/tools become available | Full source/toolchain hashes, original data path constraints, post-route report and safe image plan |
 
-Build and test the off-target detector in `experiments/edge-detector/`, if present, before asking the owner for any live-board change. Then run the **read-only** inventory procedure in [docs/architecture/EDGE_AI_INTEGRATION.md](docs/architecture/EDGE_AI_INTEGRATION.md) on the verified radio, archive the original SD card *offline*, and obtain distinct authorization for experimental boot/SD writes.
+## Parallel R&D lanes — experiments, not shipped features
 
-## Stage verdicts
+### A. Spectrum intelligence and evidence-rich UX
 
-The initial software prototype is **REPRODUCED_OFF_TARGET** only after host logs are actually attached. Every hardware acceptance cell remains **BLOCKED**, not PASS by inheritance from the upstream Fishball devkit.
+The [AI RF research index](research/ai-rf-spectrum-intelligence/README.md) motivates **context-keyed spectrum memory**, temporal signal fingerprints, receiver health explanations, and protocol-confirmed feedback. The priority experiment is **adaptive noise baseline with controlled forget/reset behavior**. Compare against static thresholds and CFAR-inspired methods under gain/LO/sample-rate changes, adjacent interferers and changing noise. Log detection probability, false alarms per hour, onset/bandwidth error and compute load. A learned baseline must never silently classify an unseen signal as known or erase a real narrowband transmission.
 
-Review owners: Main integration director coordinates Agent 1 hardware, Agent 2 ML and Agent 3 codecs. Cross-repository changes require separate scoped review.
+Future optional features: occupancy map and dwell trends; burst signatures useful for ranking, not identity; bounded, explicitly optional pre/post-event IQ; and a UI/host API showing which observation caused an alert. RF sensing, not active jamming or interference generation.
+
+### B. Compression and bandwidth efficiency
+
+The source sample count/format and exact 12-bit useful values matter more than flashy ratios. Work with [OrcStream](https://github.com/hardcoreerik/OrcStream) ownership for portable codec negotiation and independent vectors. Evaluate **lossless native-12 packing**, entropy/predictive schemes and **explicit opt-in approximate representations** separately. Benchmark across actual RF recordings by: exact roundtrip or quantified distortion, compression worst-case expansion, byte/s *delivered* across transport, CPU/FPGA cycles, copies, recovery from gaps, and independent host decoder. No claim that 61.44 MS/s native CS16 can traverse USB2 continuously.
+
+### C. Heterogeneous edge computing
+
+Baseline with C++ FFT/handcrafted features, then a small interpretable tree. Compare ncnn and LiteRT **only after** Cortex-A9 armhf/NEON ELF/run success. FPGA candidate order: no-op side tap → counters/power → optional filter/channelizer/FFT → experimental INT8 PL inference **only if** measured CPU bottleneck and timing/resource savings justify it. Legacy FINN or Vitis AI examples do not make a deployable Fishball NPU.
+
+### D. Open clients and radio standards
+
+Maintain **IIO/iiod first**. OrcStream is additive and source-neutral; OrcSDR/ESP32-P4/PC clients test the compatibility contract but are not exclusive consumers. Explore capture export via SigMF, receiver diagnostics and independent event consumers. Do not invent EVENT, JOB or compression packet semantics in this repository.
+
+### E. Appliance productization and scale
+
+Reproducible Linux/HDL builds and exact hardware profiles, user-facing setup/health pages, secure remote administration, provisioning, release manifests, signed update and rollback, multi-board support gates, SBOM/license and dataset audit, long-running observability. **Buildroot vs hardened Debian remains an evidence-driven decision**, not an ideological requirement.
+
+## Research-to-decision rules
+
+Every proposal must enter through the [review matrix](docs/architecture/INTEGRATION_MATRIX.md) or a new ADR. It must state the baseline, source artifact, on-target/off-target grade, changed resource/path, failure modes, independent metric, stop condition, owner and integration boundary.
+
+Research and previous session prompts in `research/agent2/` are historical records. The [full Markdown review](docs/reviews/ALL_MARKDOWN_REVIEW_2026-11-22.md) documents which files were reconciled, what was preserved and which speculative claims remain blocked.
+
+## First runnable experiment (no hardware required)
+
+```sh
+python3 experiments/edge-detector/run_tests.py
+# Windows: py -3 experiments/edge-detector/run_tests.py
+```
+
+Requires Python 3, GCC/Clang C++17. Saves `edge_detector_test.log` plus `edge_detector_test_artifacts/` **in the launch directory**, not in an inaccessible temporary path. Expected historical reference: `PASS: 11 assertions; 2 burst windows; 0 inferred modulation labels`; check the actual log before claiming a new PASS. Runbook, failure modes and cleanup: [experiment README](experiments/edge-detector/README.md).
+
+On-device continuation is **blocked** until exact-board inventory, TX physical safety and original-image recovery are established. Do not interpret this roadmap as permission to flash or transmit.

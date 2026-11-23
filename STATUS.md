@@ -1,40 +1,65 @@
-# OrcPluto-Firmware — Status and Evidence Ledger
+# STATUS — OrcPluto-Firmware
 
-**Updated:** 2026-11-21; scope: integration of Agent 2 research. Treat this as current work status, not firmware release notes.
+**Reviewed:** 2026-11-22. This ledger distinguishes documented work from actual target acceptance. The planned target board is a candidate Fishball/PlutoSky **R1 XC7Z020 + AD9361**. No new live hardware validation is implied by this document consolidation.
 
-| Item | Evidence label | Reproducible support | Next proof |
+## At a glance
+
+| Area | Evidence grade | Actual state | Required next proof |
 |---|---|---|---|
-| Offline C++ CS16 detector | REPRODUCED_OFF_TARGET | [11 host assertions + ASan/UBSan replay](experiments/edge-detector/OFFTARGET_TEST_EVIDENCE.md), Linux x86-64 g++ 14.2.0; generated logs saved in launch folder | ARMv7+real AD9361 input, end-to-end latency, false-alarm and coexistence proof |
-| Agent 2 six studies | UPSTREAM_DOCUMENTED | [research/agent2/README.md](research/agent2/README.md), published on `main` at `b9c69caa3bea28f7ef758f79185fe38c959b3618`; no target tests | Compare executable feasibility with actual R1 |
-| Agent 1 exact-board reconnaissance | UPSTREAM_DOCUMENTED | [Independent REA research branch](https://github.com/hardcoreerik/REA-Results/tree/research/orcpluto-fishball-hardware-20261121), pinned upstream `c5611717e2144a978ab22cf63a20171eea675557` | Actual unit inventory, firmware/board/PA/boot hashes |
-| Published FPGA reference | UPSTREAM_DOCUMENTED | 94/220 DSP48, 12,521/53,200 LUTs, +0.215ns WNS **reported by other R1 build**; see Agent 1 resource matrix | Fresh full route on exact checkout/XSA; baseline+mod comparisons |
-| Existing USB Pluto driver | UPSTREAM_DOCUMENTED / REPORTED | [esp-pluto-sdr](https://github.com/hardcoreerik/esp-pluto-sdr) 2.4–5 MS/s class tests on ESP32-P4; Fishball firmware used | Our firmware compatibility and error/restart regression |
-| OrcStream protocol implementation | PROPOSED / EXPERIMENTAL IN OTHER BRANCH | [OrcStream PROJECT_TRUTH](https://github.com/hardcoreerik/OrcStream/blob/main/PROJECT_TRUTH.md), main is docs, C99 drafts unmerged | Independent event/codec contract, test vectors and producers |
-| Agent 3 compression research | BLOCKED | No compression-named OrcStream research branch located on inspection date | Read actual Agent 3 commit/handoff when available |
-| Our firmware image and live recovery | BLOCKED | No bootable OrcPluto image or own board validation | P0/P1 |
-| Target classifier/ncnn/TFLite | BLOCKED | No ARMv7 target binary or runtime traces in Agent 2 report | P3/P6 |
-| FPGA feature engine | PROPOSED | Side-tap diagram, source-referenced patch analysis only | P5 synthesis, timing/CDC and live IQ proof |
-| IQ+feature concurrent service | PROPOSED | Competing independent IIO readers **not validated** | P4 single owner or actual PL tap |
-| Native OrcStream EVENT or IQ producer | BLOCKED | No stable wire EVENT nor native producer | OrcStream conformance and source proof |
+| Original Agent 2 research | `UPSTREAM_DOCUMENTED` / research | Six technical studies plus index/follow-up/handoff on repository `main` | Convert into exact-board tests and artifact-based ADR decisions |
+| Integration docs and architecture | `PROPOSED` / documented | Prior branch supplies truth, roadmap, status, 2 ADRs, matrix, handoff and edge contract; this audit consolidates all 21 existing tracked Markdown files | Merge docs; run acceptance tasks rather than assuming implementation |
+| Host CS16LE detector | `REPRODUCED_OFF_TARGET` | Prior report: 11 assertions, two expected burst windows, ASan/UBSan replay passed on Linux x86-64, g++ 14.2.0; no new run in this docs review | Repeat test; tighten input/output edge cases; build ARMv7 and run actual recorded AD9361 IQ |
+| Candidate board details | `UPSTREAM_DOCUMENTED` | REA/Fishball external documentation for R1 silicon/DDR/PHY/USB and firmware lineage | Read-only exact owner-unit PCB, part grade, PA, TX boot behavior, clock, boot/DT/IIO inventory |
+| FPGA baseline utilization | `UPSTREAM_DOCUMENTED` | Matching *other* R1 published symmetric 2RX build: 94/220 DSP48, 12,521/53,200 LUT, +0.215 ns WNS; arithmetic remainder **is not routable headroom** | Rebuild same revision, compare post-route full report and native IIO output on owner board |
+| Existing Pluto USB/IIOD client | Separate-project report | `esp-pluto-sdr` / OrcSDR have reported ESP32-P4 IIO receive paths | Independent regression against *our* new reference image, rates and failure recovery |
+| AI RF research archive | Index verified as tracked text; ZIP **not independently unpacked** | Index describes 13-file bundle and checksum, including memory, receiver-health and temporal fingerprint concepts | Verify ZIP hash/contents in a binary-capable environment, reconcile each internal doc before treating as authoritative |
+| Spectrum memory / adaptive detection | `PROPOSED` | No implemented CFAR/adaptive-memory tests in this repository | Deterministic controlled fixtures + grouped real-capture comparisons against fixed threshold |
+| Linux 6.12 + Debian 13 armhf | `UPSTREAM_DOCUMENTED` candidate | Matching Fishball-family source and external recipe; no owner-board boot | Exact image/boot/DT hashes, spare SD, recovery rehearsal, full IIO/USB/Ethernet validation |
+| Custom Buildroot/Yocto | `PROPOSED` / deferred | Production distro trade studies only | Same-board A/B footprint/boot/update/security/resource evidence |
+| Live on-device classifier | `BLOCKED` | No completed ARMv7 ELF/model/runtime/benchmark | Device ABI, capture-accurate scan conversion, known/unknown labels, target CPU/PSS/latency |
+| FPGA feature engine | `BLOCKED` | No integrated mirror/FFT/FIFO synthesis, CDC proof or flashed trial | Exact-source RTL, full route timing/resource delta, 2RX native-IQ integrity |
+| IQ + AI concurrent owner/fanout | `BLOCKED` | No demonstrated safe simultaneous service; second IIO DMA reader not presumed supported | Single-owner/side-tap design, overload tests and separate source vs feature loss |
+| OrcStream native producer/event/codec | `BLOCKED` | OrcStream main research-stage at last read; experimental C99 on separate branch | Portable protocol approval and independent conformance, then actual producer and generic consumer |
+| Product firmware/recovery/security | `BLOCKED` | No bootable OrcPluto image or release/update/rollback validation | P0/P1/P7 gates and device-safe authorization |
+| 24h soak and release claims | `BLOCKED` | No verified long-duration target service | Continuous IIO + feature soak, reconnect, power cycle, memory/thermal and explicit loss ledger |
 
-## Cross-agent conflicts to resolve
+## Documentation reconciliation
 
-1. **Board identification:** 'Fishball R1' and XC7Z020-CLG400 are strong upstream matches, but the actual owner's package, speed grade, PA population and USB/clock routing remain unverified. R2 artifacts are incompatible.
-2. **Remaining FPGA resources:** nominal 126 DSP and 40,679 LUT *arithmetic residual* is not usable headroom; the published +0.215 ns WNS is slender. Agent 2 must not claim a classifier fits from these counts.
-3. **Distribution:** Agent 2 prefers Debian 13 + ADI 6.12 for development and Buildroot as a *candidate* for production. Agent 1 confirms a matching published family build, not our own target acceptance. No premature distro migration.
-4. **Timing:** matching rates and a 64-bit FPGA counter do not establish accurate UTC or inter-board RF phase coherence; both RX chains share RX LO.
-5. **Capture ownership:** parallel IIO clients may contend for one DMA buffer; no claimed simultaneous live IIO+ML until a single fanout owner or verified passive FPGA tap exists.
-6. **Codec and EVENT version:** Agent 3 final results absent; current OrcStream main has no registered EVENT IDs or Smart IQ bitstreams. Local NDJSON is experimental, not an OrcStream schema.
-7. **Throughput:** 20–23 MB/s USB host observations are not maximum guaranteed on our firmware. Raw 1RX CS16 at 61.44 MS/s = 245.76 MB/s and cannot fit USB2 without substantial data reduction, which may be lossy or selective.
-8. **TX safety and licenses:** PA-equipped hardware may emit at boot before software mute; source packages and HDL have different licensing requirements. No OTA or unverified flash.
+The `main` baseline SHA at comparison was `b9c69caa3bea28f7ef758f79185fe38c959b3618`; the integration branch head inspected was `d0f9658335a298952734d7183695a60fda7b714c`. That branch was **26 commits ahead / 0 behind** and contained **21 tracked Markdown files**, including the same **10** present on `main`. Its **11 branch-only** Markdown files capture integration, ADR, experiment and AI archive-index work. Original research files remained byte-for-byte common to both branch trees at the audit point.
 
-## Test execution table
+Consolidation writes the canonical [README.md](README.md), [PROJECT_TRUTH.md](PROJECT_TRUTH.md), [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](ARCHITECTURE.md), this ledger and a [file-by-file audit](docs/reviews/ALL_MARKDOWN_REVIEW_2026-11-22.md). Original `research/agent2/` studies and technical ADRs remain archival supporting references.
 
-| Test | Result | Explanation |
+The `research/Artifical_Intelligence_RF_research.zip` filename is historical and intentionally not renamed. The index lists SHA256 `a10ff4f0c4b2beb2e797c07cb9d732b3e7585dbd0676c1336563bff9b940ee24`, **not independently recalculated in this review**.
+
+## Test execution truth
+
+| Test or operation | In this documentation review | Prior reported result / source |
 |---|---|---|
-| Agent 2 live board run | NOT EXECUTED | Agent 2 performed research only |
-| RTL synthesis/place-route | NOT EXECUTED | No Xilinx toolchain and board HDL checkout in this session |
-| ARMv7 ncnn or LiteRT on R1 | NOT EXECUTED | No target-ABI execution |
-| IIO acquisition + AI coexistence | NOT EXECUTED | Single owner not implemented; no lab radio access |
-| Firmware image build, SD boot, flash | NOT EXECUTED | Device-specific recovery gate incomplete |
-| OrcStream EVENT wire integration | NOT EXECUTED | No frozen standard or native producer |
+| Enumerate and inspect both repo trees / every existing tracked `.md` | **DONE** by GitHub connector; 21 unique Markdown files on integration branch | File-by-file [audit](docs/reviews/ALL_MARKDOWN_REVIEW_2026-11-22.md) |
+| Cross-check OrcStream protocol authority | **DONE** by GitHub text reads | Main project truth and protocol evolution docs dated 2026-11-10 |
+| Review detector C++ and Python runner text | **DONE** (static only) | Local log, CWD fixture path and bounded O(N²) behavior confirmed in source |
+| Run detector code in this session | **NOT EXECUTED** | Prior [recorded off-target test](experiments/edge-detector/OFFTARGET_TEST_EVIDENCE.md) reports 11 assertions and ASan/UBSan |
+| Unpack/validate AI research ZIP binary | **NOT EXECUTED** | GitHub text connector could read index but not decode ZIP contents |
+| Cross-compile or execute on Cortex-A9 | **NOT EXECUTED** | Hardware/toolchain not attached |
+| Boot image, original SD backup and recovery | **NOT EXECUTED** | Exact hardware identity and owner-side physical procedure required |
+| Synthesis/post-route FPGA report and board IQ comparison | **NOT EXECUTED** | Exact HDL/Vivado and physical board unavailable |
+| Real RF capture, AI/IIO coexistence, 24h soak | **NOT EXECUTED** | P0/P1/P2 missing |
+| Native OrcStream wire integration | **NOT EXECUTED** | Portable protocol negotiation and hardware source missing |
+
+## Open issues requiring explicit decisions
+
+1. **Board reality:** name, form factor and a prior IIO `hw_model` alone do not identify the actual owner unit's power amplifiers, speed grade and boot/clock topology. Do not use R2 boot assets or generic DFU.
+2. **FPGA room:** 220 total DSP minus 94 reported use is arithmetic, not deployable available resources; timing slack in that external report is narrow. The old 96-DSP WBFM experiment and newer 2RX FIR build are **not automatically additive**.
+3. **Native IQ and USB:** 1RX CS16 payload at 61.44 MS/s is 245.76 MB/s; upstream USB examples and 1GbE PHY names do not guarantee full-rate transport. Report actual sustainable bytes, samples and losses.
+4. **Capture contention:** iiod plus independent IIO reader may compete for one RX DMA. Do not imply simultaneous real-time intelligence from a successful standalone offline file replay.
+5. **Timing:** equal nominal samples and an FPGA counter do not establish true UTC, calibrated clock precision or cross-channel phase coherence.
+6. **AI identity:** detecting frequency/burst features cannot validate DMR/NXDN/P25/LoRa; confidence absent calibration remains null and `unknown` must work.
+7. **Protocol authority:** OrcStream owns source-neutral codec/EVENT/JOB IDs and tests. This firmware's internal NDJSON is **not** an interoperable wire standard.
+8. **Detector robustness:** its Python runner compiles and logs in the launch directory, but C++ currently checks input/output aliases by pathname string, not canonical/inode identity, and numeric parsing may accept trailing characters. Harden before accepting untrusted inputs.
+9. **Binary archive provenance:** the AI RF index describes concepts but the embedded 13 Markdown files are not exposed as tracked paths. Unpack/hash-review before final claim of full archive-content audit.
+
+## Next safe actions
+
+First run `python3 experiments/edge-detector/run_tests.py` from the directory where logs should be saved (Windows: `py -3 experiments/edge-detector/run_tests.py`); compare the real run to the documented expected `PASS: 11 assertions; 2 burst windows; 0 inferred modulation labels`. The runner saves `edge_detector_test.log` and artifacts in the **launch directory**. Full tool prerequisites, manual replay and cleanup: [experiment instructions](experiments/edge-detector/README.md).
+
+Separately, perform the [read-only exact-board inventory](docs/architecture/LOCAL_DEVICE_HANDOFF.md), preserve and hash original SD offline, and stop until recovery and TX safety are established. Only then start P1 reference-image work. No document here grants permission for a disruptive device action.
