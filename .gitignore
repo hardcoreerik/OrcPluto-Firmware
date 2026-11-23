@@ -1,0 +1,5 @@
+# OrcPluto off-target test artifacts saved in each launch directory
+/edge_detector_test.log
+/edge_detector_test_artifacts/
+/experiments/edge-detector/edge_detector_test.log
+/experiments/edge-detector/edge_detector_test_artifacts/
